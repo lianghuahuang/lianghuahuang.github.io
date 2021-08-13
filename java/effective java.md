@@ -49,5 +49,34 @@
 - 在Java 9中用清除方法（ cleaner ）代替了终结方法。清除方法没有终结方法那么危险，但仍然是不可预测、运行缓慢，一般情况下也是不必要的。  
 - 终结方法和清除方法的缺点在于不能保证会被及时执行，因此注重时间(time-critical) 的任务不应该由终结方法或者清除方法来完成。
 - 使用终结方法和清除方法有一个非常严重的性能损失。
-- 终结方法有一个严重的安全问题： 如果从构造器或者它的序列化对等体（ readObject和readResolve 方法，详见第12 章）抛出异常，恶意子类的终结方法就可以在构造了一部分的应该已经半途夭折的对象上运行。为了防止非final 类受到终结方法攻击， 要编写一个空的final 的finalize 方法。
+- 终结方法有一个严重的安全问题： 如果从构造器或者它的序列化对等体（ readObject和readResolve 方法，详见第12 章）抛出异常，恶意子类的终结方法就可以在构造了一部分的应该已经半途夭折的对象上运行。为了防止 
+  非final 类受到终结方法攻击， 要编写一个空的final 的finalize 方法。
 - 第一种用途是，当资源的所有者忘记调用它的close 方法时，终结方法或者清除方法可以充当“安全网”
+### 9、try-with-resources 优先于try-finally （相对应的资源需要实现AutoCloseable）
+## 对于所有对象都通用的方法
+### 10、覆盖equals 时请遵守通用约定
+  #### 无需提供equal覆盖的条件：
+  - 类的每个实例本质上都是唯一的
+  - 类没有必要提供“逻辑相等”（ logical equality ）的测试功能
+  - 超类已经覆盖了equals ， 超类的行为对于这个类也是合适的。
+  - 类是私有的， 或者是包级私有的， 可以确定它的equals方法永远不会被调用。如果你非常想要规避风险，可以覆盖equals 方法，以确保它不会被意外调用（通过覆盖方法抛出异常）
+  #### 应该覆盖equals的条件：类具有自己特有的“逻辑相等”（ logical equality ）概念（不同于对象等同的概念），而且超类还没有覆盖equals
+  #### equals 通用约定，equals 方法实现了等价关系（ equi va lence relation ）
+  - 自反性（ reflexive ）：对于任何非null 的引用值x， x.equals(x)必须返回true 。
+  - 对称性（ symmetric ）：对于任何非null 的引用值x 和y ，当且仅当y.equals(x)返回true 时， x.equals(y)必须返回true 。
+  - 传递性（ transitive ） ： 对于任何非null 的引用值x 、y 和z ，如果x.equals(y)返回true ，并且y.equals(z)也返回true ，那么x.equals(z)也必须返回true。
+  - 一致性（ consistent ） ： 对于任何非null 的引用值x 和y ，只要equals 的比较操作在对象中所用的信息没有被修改，多次调用x.equals(y)就会一致地返回true,或者一致地返回false 。
+  - 对于任何非null 的引用值x, x.equals (null ）必须返回false 。
+ #### equals高质量实现
+  - 使用＝＝操作符检查“参数是否为这个对象的引用”
+  - 使用instanceof 操作符检查“参数是否为正确的类型”
+  - 把参数转换成正确的类型。
+  - 对于该类中的每个“关键”（ significant ）域，检查参数中的域是否与该对象中对应的域相匹配。
+ #### 覆盖equals方法的一些告诫
+  - 覆盖equals 时总要覆盖hashCode
+  - 不要企图让equals 方法过于智能。
+  - 不要将equals 声明中的Object 对象替换为其他的类型。
+### 11、覆盖equals 时总要覆盖hashCode
+  - 在应用程序的执行期间，只要对象的equals 方法的比较操作所用到的信息没有被修改，那么对同一个对象的多次调用， hashCode 方法都必须始终返回同一个值。在一个应用程序与另一个程序的执行过程中，执行        hashCode方法所返回的值可以不一致。
+  - 如果两个对象根据equals(Object ）方法比较是相等的，那么调用这两个对象中的hashCode 方法都必须产生同样的整数结果。
+  - 如果两个对象根据equals(Object ）方法比较是不相等的，那么调用这两个对象中的hashCode 方法，则不一定要求hashCode 方法必须产生不同的结果。但是程序员应该知道，给不相等的对象产生截然不同的整数结     果，有可能提高散列表（ hashtable ）的性能。
